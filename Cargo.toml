@@ -9,6 +9,14 @@ edition = "2021"
 glam = "0.24.2"
 image = "0.24.7"
 rand = "0.8.5"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = [
+    "env-filter",
+    "fmt",
+    "tracing-log",
+    "json",
+    "tracing",
+] }
 
 [profile.release]
 debug = true

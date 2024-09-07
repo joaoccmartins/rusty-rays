@@ -16,6 +16,8 @@ use crate::{
 
 use super::core::Renderer;
 
+// A hyper simple multi threaded version of the renderer, just for expedience sake
+// not exactly lightspeed or production quality
 pub struct MultiThreadedRenderer {
     camera: Camera,
     tiles: Vec<Option<RgbaImage>>,
@@ -26,7 +28,7 @@ pub struct MultiThreadedRenderer {
 impl MultiThreadedRenderer {
     pub fn new(camera: Camera, number_of_samples: u32, tile_size: u32) -> Self {
         if camera.width % tile_size != 0 || camera.height % tile_size != 0 {
-            todo!()
+            todo!("Size needs to be divisible by tile size for now.")
         };
         let columns = camera.width / tile_size;
         let rows = camera.height / tile_size;
@@ -62,9 +64,8 @@ impl MultiThreadedRenderer {
                 );
             })
         });
-
-        println!("\t\tFinished rendering tile ({column}, {row})");
-        channel.send((column, row, framebuffer)).unwrap()
+        tracing::trace!("Finished Tile ({column}, {row})");
+        channel.send((column, row, framebuffer)).unwrap();
     }
 }
 
@@ -77,11 +78,12 @@ impl Renderer for MultiThreadedRenderer {
         let columns = camera.width / self.tile_size;
         let rows = camera.height / self.tile_size;
 
+        // A channel to receive each of the resulting tile framebuffer
         let (tx, rx) = mpsc::sync_channel((columns * rows) as usize);
-
+        // This is forcefully generating a thread per tile, extra wasteful
+        // TODO: substitute for a Threadpool system
         (0..columns).for_each(|column| {
             (0..rows).for_each(|row| {
-                println!("Spawning thread for tile ({column}, {row})");
                 let tx_clone = tx.clone();
                 let scene_clone = scene.clone();
                 thread::spawn(move || {
@@ -98,35 +100,37 @@ impl Renderer for MultiThreadedRenderer {
             })
         });
         drop(tx);
+        // Collect every tile
         for (column, row, tile) in rx {
-            println!("\tReceiving tile ({column}, {row})");
+            debug_assert!(self.tiles[(column + columns * row) as usize].is_none());
             self.tiles[(column + columns * row) as usize] = Some(tile);
         }
-        println!("Finished render");
+        tracing::trace!("Finished Rendering");
     }
 
     fn framebuffer(&self) -> RgbaImage {
         let mut framebuffer = ImageBuffer::new(self.camera.width, self.camera.height);
-        println!("Started stitching");
         let columns = self.camera.width / self.tile_size;
+        // Stitch every tile
         for (i, tile) in self.tiles.iter().enumerate() {
-            let column = i as u32 / columns;
-            let row = i as u32 % columns;
+            let column = i as u32 % columns;
+            let row = i as u32 / columns;
+            debug_assert!(tile.is_some());
             if let Some(tile) = tile {
                 let start_x = column * self.tile_size;
                 let start_y = row * self.tile_size;
                 tile.pixels().enumerate().for_each(|(t, pixel)| {
                     framebuffer.put_pixel(
-                        start_x + t as u32 / self.tile_size,
-                        start_y + t as u32 % self.tile_size,
+                        start_x + t as u32 % self.tile_size,
+                        start_y + t as u32 / self.tile_size,
                         *pixel,
                     )
                 });
             } else {
-                println!("Tile ({}, {}) was not rendered", column, row);
+                unreachable!()
             }
         }
-        println!("Ended stitching");
+        tracing::trace!("Finished Stitching");
         framebuffer
     }
 }

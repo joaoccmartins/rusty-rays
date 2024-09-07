@@ -4,8 +4,8 @@ use rand::Rng;
 
 use crate::{
     interval::Interval,
+    ray::{HitResult, Ray},
     scene_graph::{Material, Prim, Scene},
-    tracing::{HitResult, Ray},
 };
 
 pub trait Renderer {

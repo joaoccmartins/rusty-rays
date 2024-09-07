@@ -13,11 +13,11 @@ use super::core::{hit_scene_with_ray, Renderer};
 pub struct SingleThreadedRenderer {
     camera: Camera,
     framebuffer: RgbaImage,
-    number_of_samples: usize,
+    number_of_samples: u32,
 }
 
 impl SingleThreadedRenderer {
-    pub fn new(camera: Camera, number_of_samples: usize) -> Self {
+    pub fn new(camera: Camera, number_of_samples: u32) -> Self {
         Self {
             camera,
             framebuffer: ImageBuffer::new(camera.width, camera.height),
