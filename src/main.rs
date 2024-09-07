@@ -8,7 +8,7 @@ use rand::Rng;
 use scene_graph::Prim;
 pub(crate) use tracing::*;
 
-use renderer::SingleThreadedRenderer;
+use renderer::{MultiThreadedRenderer, SingleThreadedRenderer};
 
 use crate::scene_graph::{DiffuseAttributes, Material, Scene};
 
@@ -34,9 +34,20 @@ fn main() {
     let width = 512;
     let height = 512;
 
-    let number_of_samples = 20;
+    let number_of_samples = 100;
 
-    let mut renderer = SingleThreadedRenderer::new(
+    //let mut renderer = SingleThreadedRenderer::new(
+    //    Camera::new(
+    //        width,
+    //        height,
+    //        vec3(0.0, 0.0, -10.0),
+    //        vec3(0.0, -0.05, 0.5).normalize(),
+    //        1.0,
+    //    ),
+    //    number_of_samples,
+    //);
+
+    let mut renderer = MultiThreadedRenderer::new(
         Camera::new(
             width,
             height,
@@ -45,6 +56,7 @@ fn main() {
             1.0,
         ),
         number_of_samples,
+        64,
     );
 
     let vec = vec![
