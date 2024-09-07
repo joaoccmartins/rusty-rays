@@ -34,7 +34,7 @@ fn main() {
     let width = 512;
     let height = 512;
 
-    let number_of_samples = 100;
+    let number_of_samples = 20;
 
     let mut renderer = SingleThreadedRenderer::new(
         Camera::new(
@@ -59,7 +59,7 @@ fn main() {
         ),
         (
             Prim::Sphere {
-                pos: vec3(0.0, -10., -10.0),
+                pos: vec3(0.0, -10.0, -10.0),
                 radius: 10.0,
             },
             Material::Diffuse(DiffuseAttributes {

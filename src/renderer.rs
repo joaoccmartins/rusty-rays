@@ -70,10 +70,10 @@ fn hit_object_with_ray(
             } else {
                 // TODO: Review this branching mess
                 let sqrt = f32::sqrt(discriminant);
-                let t = if interval.surrounds((-half_b - sqrt) / a) {
-                    Some((-half_b - sqrt) / a)
-                } else if interval.surrounds((-half_b + sqrt) / a) {
+                let t = if interval.surrounds((-half_b + sqrt) / a) {
                     Some((-half_b + sqrt) / a)
+                } else if interval.surrounds((-half_b - sqrt) / a) {
+                    Some((-half_b - sqrt) / a)
                 } else {
                     None
                 };
@@ -81,10 +81,7 @@ fn hit_object_with_ray(
                     let hit_pos = ray.pos + ray.dir * t;
                     let normal = (hit_pos - *pos) / *radius;
                     HitResult {
-                        normal: match normal.dot(ray.dir).is_sign_positive() {
-                            true => normal,
-                            false => -normal,
-                        },
+                        normal,
                         pos: hit_pos,
                         t,
                         bounce: bounce_count,
@@ -109,9 +106,9 @@ fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_count: usize) -> Vec3 {
         })
         .min_by(|left, right| left.0.t.total_cmp(&right.0.t))
     {
-        hit.normal
+        //hit.normal
         //(hit.normal + vec3(1.0, 1.0, 1.0)) / 0.5
-        //get_ray_color(*mat, hit, scene)
+        get_ray_color(*mat, hit, scene)
     } else {
         // Background
         vec3(0.4, 0.6, 0.85)
