@@ -1,14 +1,13 @@
-use std::{fs::read, ops::Div, time::Instant};
+use std::time::Instant;
 
 pub(crate) use camera::Camera;
 use glam::{vec3, Mat4, Vec3};
-use image::{ImageBuffer, RgbaImage};
-use interval::Interval;
 use rand::Rng;
 use scene_graph::Prim;
 pub(crate) use tracing::*;
 
-use renderer::{MultiThreadedRenderer, SingleThreadedRenderer};
+use renderer::single_threaded::SingleThreadedRenderer;
+use renderer::{core::Renderer, multi_threaded::MultiThreadedRenderer};
 
 use crate::scene_graph::{DiffuseAttributes, Material, Scene};
 
