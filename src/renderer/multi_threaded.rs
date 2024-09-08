@@ -7,7 +7,7 @@ use glam::{vec4, Vec3};
 use std::ops::Div;
 
 use crate::{
-    color::{linear_to_gamma, Framebuffer},
+    color::{linear_to_gamma, Color, Framebuffer},
     renderer::core::hit_scene_with_ray,
     scene_graph::Scene,
     Camera,
@@ -56,11 +56,10 @@ impl MultiThreadedRenderer {
                 let color: Vec3 = (0..number_of_samples)
                     .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, 0))
                     .sum();
-                let pixel = linear_to_gamma(color.div(number_of_samples as f32));
                 framebuffer.put_pixel(
                     (x - start_x) as usize,
                     (y - start_y) as usize,
-                    vec4(pixel.x, pixel.y, pixel.z, 1.0),
+                    Color::with_alpha(linear_to_gamma(color.div(number_of_samples as f32)), 1.0),
                 );
             })
         });
@@ -121,7 +120,7 @@ impl Renderer for MultiThreadedRenderer {
                 let start_x = column * self.tile_size;
                 let start_y = row * self.tile_size;
                 tile.data().iter().enumerate().for_each(|(t, pixel)| {
-                    framebuffer.put_pixel_u32(
+                    framebuffer.put_pixel(
                         (start_x + t as u32 % self.tile_size) as usize,
                         (start_y + t as u32 / self.tile_size) as usize,
                         *pixel,

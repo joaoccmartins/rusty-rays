@@ -1,15 +1,11 @@
-use std::time::Instant;
-
 pub(crate) use camera::Camera;
-use glam::{vec3, Mat4, Vec3};
+use color::Framebuffer;
+use glam::vec3;
 use minifb::{Key, Window, WindowOptions};
-use rand::Rng;
 use ray::Ray;
 use scene_graph::Prim;
 
-use renderer::single_threaded::SingleThreadedRenderer;
 use renderer::{core::Renderer, multi_threaded::MultiThreadedRenderer};
-use tracing_subscriber::fmt::format::FmtSpan;
 
 use crate::scene_graph::{DiffuseAttributes, Material, Scene};
 
@@ -19,17 +15,6 @@ mod interval;
 mod ray;
 mod renderer;
 mod scene_graph;
-
-// Generates a random ray in the hemisphere coplanar with the normal
-fn get_ray_in_hemisphere(normal: Vec3, pos: Vec3) -> Ray {
-    let mut rng = rand::thread_rng();
-    let yaw = rng.gen_range(-90.0_f32.to_radians()..=90.0_f32.to_radians());
-    let pitch = rng.gen_range(-90.0_f32.to_radians()..=90.0_f32.to_radians());
-    Ray {
-        pos,
-        dir: Mat4::from_euler(glam::EulerRot::XYZ, yaw, pitch, 0.0).transform_vector3(normal),
-    }
-}
 
 pub fn init_tracing() {
     use tracing::level_filters::LevelFilter;
@@ -65,7 +50,7 @@ fn main() {
         vec3(0.0, -0.05, 0.5).normalize(),
         1.0,
     );
-    let number_of_samples = 1;
+    let number_of_samples = 20;
 
     //let mut renderer = SingleThreadedRenderer::new(camera, number_of_samples);
 
@@ -108,8 +93,10 @@ fn main() {
     window.set_target_fps(60);
     renderer.render(&scene);
 
+    let mut fb = Framebuffer::new(width as usize, height as usize);
+    fb.from_fn(|_, _| 0x00FFFFFF);
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+        // We unwrap here as we want this code to exit if it fails.
         window
             .update_with_buffer(
                 renderer.framebuffer().data(),

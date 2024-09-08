@@ -1,6 +1,7 @@
 use glam::{vec3, Vec3, Vec4};
 use image::{ImageError, Rgba, RgbaImage};
 
+// A very simple framebuffer to be used in conjunction with minifb
 #[derive(Clone)]
 pub struct Framebuffer {
     data: Vec<u32>,
@@ -21,20 +22,7 @@ impl Framebuffer {
         &self.data
     }
 
-    pub fn put_pixel(&mut self, x: usize, y: usize, pixel: Vec4) {
-        self.put_pixel_u32(
-            x,
-            y,
-            u32::from_ne_bytes([
-                (pixel.x * 255.0) as u8,
-                (pixel.y * 255.0) as u8,
-                (pixel.z * 255.0) as u8,
-                (pixel.w * 255.0) as u8,
-            ]),
-        );
-    }
-
-    pub fn put_pixel_u32(&mut self, x: usize, y: usize, pixel: u32) {
+    pub fn put_pixel(&mut self, x: usize, y: usize, pixel: u32) {
         debug_assert!(x < self.width && y < self.height);
         self.data[y * self.height + x] = pixel;
     }
@@ -45,17 +33,27 @@ impl Framebuffer {
         })
         .save(file_name)
     }
+
+    pub fn from_fn<F>(&mut self, mut shader: F)
+    where
+        F: FnMut(usize, usize) -> u32,
+    {
+        self.data
+            .iter_mut()
+            .enumerate()
+            .for_each(|(i, p)| *p = shader(i % self.width, i / self.height));
+    }
 }
 
 pub trait Color {
-    fn from(self) -> Rgba<u8>;
+    fn from(self) -> u32;
 
-    fn with_alpha(self, alpha: f32) -> Rgba<u8>;
+    fn with_alpha(self, alpha: f32) -> u32;
 }
 
 impl Color for Vec4 {
-    fn from(self) -> Rgba<u8> {
-        Rgba([
+    fn from(self) -> u32 {
+        u32::from_ne_bytes([
             (self.x * 255.0) as u8,
             (self.y * 255.0) as u8,
             (self.z * 255.0) as u8,
@@ -63,8 +61,8 @@ impl Color for Vec4 {
         ])
     }
 
-    fn with_alpha(self, alpha: f32) -> Rgba<u8> {
-        Rgba([
+    fn with_alpha(self, alpha: f32) -> u32 {
+        u32::from_ne_bytes([
             (self.x * 255.0) as u8,
             (self.y * 255.0) as u8,
             (self.z * 255.0) as u8,
@@ -74,8 +72,8 @@ impl Color for Vec4 {
 }
 
 impl Color for Vec3 {
-    fn from(self) -> Rgba<u8> {
-        Rgba([
+    fn from(self) -> u32 {
+        u32::from_ne_bytes([
             (self.x * 255.0) as u8,
             (self.y * 255.0) as u8,
             (self.z * 255.0) as u8,
@@ -83,8 +81,8 @@ impl Color for Vec3 {
         ])
     }
 
-    fn with_alpha(self, alpha: f32) -> Rgba<u8> {
-        Rgba([
+    fn with_alpha(self, alpha: f32) -> u32 {
+        u32::from_ne_bytes([
             (self.x * 255.0) as u8,
             (self.y * 255.0) as u8,
             (self.z * 255.0) as u8,

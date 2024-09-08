@@ -2,7 +2,7 @@ use glam::{vec4, Vec3};
 use std::ops::Div;
 
 use crate::{
-    color::{linear_to_gamma, Framebuffer},
+    color::{linear_to_gamma, Color, Framebuffer},
     scene_graph::Scene,
     Camera,
 };
@@ -36,11 +36,10 @@ impl Renderer for SingleThreadedRenderer {
                 let color: Vec3 = (0..number_of_samples)
                     .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), scene, 0))
                     .sum();
-                let pixel = linear_to_gamma(color.div(number_of_samples as f32));
                 self.framebuffer.put_pixel(
                     x as usize,
                     y as usize,
-                    vec4(pixel.x, pixel.y, pixel.z, 1.0),
+                    Color::with_alpha(linear_to_gamma(color.div(number_of_samples as f32)), 1.0),
                 );
             })
         });
