@@ -2,6 +2,7 @@ use std::time::Instant;
 
 pub(crate) use camera::Camera;
 use glam::{vec3, Mat4, Vec3};
+use minifb::{Key, Window, WindowOptions};
 use rand::Rng;
 use ray::Ray;
 use scene_graph::Prim;
@@ -64,7 +65,7 @@ fn main() {
         vec3(0.0, -0.05, 0.5).normalize(),
         1.0,
     );
-    let number_of_samples = 100;
+    let number_of_samples = 1;
 
     //let mut renderer = SingleThreadedRenderer::new(camera, number_of_samples);
 
@@ -94,7 +95,30 @@ fn main() {
     ];
     let scene: Scene = vec;
 
+    let mut window = Window::new(
+        "Rusty Rays Prototype - ESC to exit",
+        width as usize,
+        height as usize,
+        WindowOptions::default(),
+    )
+    .unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
+
+    window.set_target_fps(60);
     renderer.render(&scene);
+
+    while window.is_open() && !window.is_key_down(Key::Escape) {
+        // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+        window
+            .update_with_buffer(
+                renderer.framebuffer().data(),
+                width as usize,
+                height as usize,
+            )
+            .unwrap();
+    }
+
     match renderer.framebuffer().save("new_image.png") {
         Ok(_) => tracing::info!("Saved file"),
         Err(err) => tracing::error!("Error saving file: {}", err),

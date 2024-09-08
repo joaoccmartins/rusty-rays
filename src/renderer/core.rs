@@ -1,8 +1,8 @@
 use glam::{vec3, Vec3};
-use image::RgbaImage;
 use rand::Rng;
 
 use crate::{
+    color::Framebuffer,
     interval::Interval,
     ray::{HitResult, Ray},
     scene_graph::{Material, Prim, Scene},
@@ -10,7 +10,7 @@ use crate::{
 
 pub trait Renderer {
     fn render(&mut self, scene: &Scene);
-    fn framebuffer(&self) -> RgbaImage;
+    fn framebuffer(&self) -> Framebuffer;
 }
 
 // Generates a random ray in the hemisphere coplanar with the normal

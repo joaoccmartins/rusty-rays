@@ -3,12 +3,11 @@ use std::{
     thread,
 };
 
-use glam::Vec3;
-use image::{ImageBuffer, RgbaImage};
+use glam::{vec4, Vec3};
 use std::ops::Div;
 
 use crate::{
-    color::{linear_to_gamma, Color},
+    color::{linear_to_gamma, Framebuffer},
     renderer::core::hit_scene_with_ray,
     scene_graph::Scene,
     Camera,
@@ -19,8 +18,8 @@ use super::core::Renderer;
 // A hyper simple multi threaded version of the renderer, just for expedience sake
 // not exactly lightspeed or production quality
 pub struct MultiThreadedRenderer {
-    camera: Camera,
-    tiles: Vec<Option<RgbaImage>>,
+    pub camera: Camera,
+    tiles: Vec<Option<Framebuffer>>,
     number_of_samples: u32,
     tile_size: u32,
 }
@@ -47,20 +46,21 @@ impl MultiThreadedRenderer {
         camera: &Camera,
         tile_size: u32,
         number_of_samples: u32,
-        channel: SyncSender<(u32, u32, RgbaImage)>,
+        channel: SyncSender<(u32, u32, Framebuffer)>,
     ) {
         let start_x = column * tile_size;
         let start_y = row * tile_size;
-        let mut framebuffer = ImageBuffer::new(tile_size, tile_size);
+        let mut framebuffer = Framebuffer::new(tile_size as usize, tile_size as usize);
         (start_y..start_y + tile_size).for_each(|y| {
             (start_x..start_x + tile_size).for_each(|x| {
                 let color: Vec3 = (0..number_of_samples)
                     .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, 0))
                     .sum();
+                let pixel = linear_to_gamma(color.div(number_of_samples as f32));
                 framebuffer.put_pixel(
-                    x - start_x,
-                    y - start_y,
-                    Color::with_alpha(linear_to_gamma(color.div(number_of_samples as f32)), 1.0),
+                    (x - start_x) as usize,
+                    (y - start_y) as usize,
+                    vec4(pixel.x, pixel.y, pixel.z, 1.0),
                 );
             })
         });
@@ -108,8 +108,9 @@ impl Renderer for MultiThreadedRenderer {
         tracing::trace!("Finished Rendering");
     }
 
-    fn framebuffer(&self) -> RgbaImage {
-        let mut framebuffer = ImageBuffer::new(self.camera.width, self.camera.height);
+    fn framebuffer(&self) -> Framebuffer {
+        let mut framebuffer =
+            Framebuffer::new(self.camera.width as usize, self.camera.height as usize);
         let columns = self.camera.width / self.tile_size;
         // Stitch every tile
         for (i, tile) in self.tiles.iter().enumerate() {
@@ -119,10 +120,10 @@ impl Renderer for MultiThreadedRenderer {
             if let Some(tile) = tile {
                 let start_x = column * self.tile_size;
                 let start_y = row * self.tile_size;
-                tile.pixels().enumerate().for_each(|(t, pixel)| {
-                    framebuffer.put_pixel(
-                        start_x + t as u32 % self.tile_size,
-                        start_y + t as u32 / self.tile_size,
+                tile.data().iter().enumerate().for_each(|(t, pixel)| {
+                    framebuffer.put_pixel_u32(
+                        (start_x + t as u32 % self.tile_size) as usize,
+                        (start_y + t as u32 / self.tile_size) as usize,
                         *pixel,
                     )
                 });
