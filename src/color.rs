@@ -1,7 +1,8 @@
-use glam::{vec3, Vec3, Vec4};
+use glam::{vec3, Vec3};
 use image::{ImageError, Rgba, RgbaImage};
 
 // A very simple framebuffer to be used in conjunction with minifb
+// stores data in ARGB format, big endian
 #[derive(Clone)]
 pub struct Framebuffer {
     data: Vec<u32>,
@@ -29,7 +30,8 @@ impl Framebuffer {
 
     pub fn save(&self, file_name: &str) -> Result<(), ImageError> {
         RgbaImage::from_fn(self.width as u32, self.height as u32, |x, y| {
-            Rgba::from(self.data[(y * self.height as u32 + x) as usize].to_ne_bytes())
+            let pixel_data = self.data[(y * self.height as u32 + x) as usize].to_be_bytes();
+            Rgba::from([pixel_data[1], pixel_data[2], pixel_data[3], pixel_data[0]])
         })
         .save(file_name)
     }
@@ -46,51 +48,42 @@ impl Framebuffer {
 }
 
 pub trait Color {
-    fn from(self) -> u32;
-
     fn with_alpha(self, alpha: f32) -> u32;
 }
-
-impl Color for Vec4 {
-    fn from(self) -> u32 {
-        u32::from_ne_bytes([
-            (self.x * 255.0) as u8,
-            (self.y * 255.0) as u8,
-            (self.z * 255.0) as u8,
-            (self.w * 255.0) as u8,
-        ])
-    }
-
-    fn with_alpha(self, alpha: f32) -> u32 {
-        u32::from_ne_bytes([
-            (self.x * 255.0) as u8,
-            (self.y * 255.0) as u8,
-            (self.z * 255.0) as u8,
-            (alpha * 255.0) as u8,
-        ])
-    }
-}
-
 impl Color for Vec3 {
-    fn from(self) -> u32 {
-        u32::from_ne_bytes([
-            (self.x * 255.0) as u8,
-            (self.y * 255.0) as u8,
-            (self.z * 255.0) as u8,
-            (255.0) as u8,
-        ])
-    }
-
     fn with_alpha(self, alpha: f32) -> u32 {
-        u32::from_ne_bytes([
+        u32::from_be_bytes([
+            (alpha * 255.0) as u8,
             (self.x * 255.0) as u8,
             (self.y * 255.0) as u8,
             (self.z * 255.0) as u8,
-            (alpha * 255.0) as u8,
         ])
     }
 }
 
 pub fn linear_to_gamma(color: Vec3) -> Vec3 {
     vec3(color.x.sqrt(), color.y.sqrt(), color.z.sqrt())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn vec3_to_u32_with_alpha() {
+        let white = Color::with_alpha(vec3(1.0, 1.0, 1.0), 0.0);
+        assert_eq!(white, 0x00FFFFFF);
+
+        let red = Color::with_alpha(vec3(1.0, 0.0, 0.0), 0.0);
+        assert_eq!(red, 0x00FF0000);
+
+        let green = Color::with_alpha(vec3(0.0, 1.0, 0.0), 0.0);
+        assert_eq!(green, 0x0000FF00);
+
+        let blue = Color::with_alpha(vec3(0.0, 0.0, 1.0), 0.0);
+        assert_eq!(blue, 0x000000FF);
+
+        let blue = Color::with_alpha(vec3(0.0, 0.0, 1.0), 1.0);
+        assert_eq!(blue, 0xFF0000FF);
+    }
 }

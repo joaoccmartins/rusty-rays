@@ -1,5 +1,5 @@
 pub(crate) use camera::Camera;
-use color::Framebuffer;
+use color::{Color, Framebuffer};
 use glam::vec3;
 use minifb::{Key, Window, WindowOptions};
 use ray::Ray;
@@ -94,7 +94,7 @@ fn main() {
     renderer.render(&scene);
 
     let mut fb = Framebuffer::new(width as usize, height as usize);
-    fb.from_fn(|_, _| 0x00FFFFFF);
+    fb.from_fn(|_, _| Color::with_alpha(vec3(0.0, 0.0, 0.0), 0.0));
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails.
         window
