@@ -36,8 +36,7 @@ pub(super) fn random_unit_vector() -> Vec3 {
 pub(super) fn get_ray_color(mat: Material, hit: HitResult, scene: &Scene) -> Vec3 {
     match mat {
         Material::Diffuse(diffuse_att) => {
-            //return (hit.normal + vec3(1.0, 1.0, 1.0)) * 0.5;
-            if hit.bounce >= 2 {
+            if hit.bounce >= diffuse_att.max_bounce {
                 return vec3(0.0, 0.0, 0.0);
             };
             // Generate a random ray on the normal's hemisphere
@@ -107,8 +106,6 @@ pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_count: usize) -
         })
         .min_by(|left, right| left.0.t.total_cmp(&right.0.t))
     {
-        //hit.normal
-        //(hit.normal + vec3(1.0, 1.0, 1.0)) / 0.5
         get_ray_color(*mat, hit, scene)
     } else {
         // Background

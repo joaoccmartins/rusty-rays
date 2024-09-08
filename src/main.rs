@@ -78,6 +78,7 @@ fn main() {
             },
             Material::Diffuse(DiffuseAttributes {
                 color: vec3(0.5, 0.3, 0.0),
+                ..Default::default()
             }),
         ),
         (
@@ -87,12 +88,12 @@ fn main() {
             },
             Material::Diffuse(DiffuseAttributes {
                 color: vec3(0.5, 0.0, 1.8),
+                ..Default::default()
             }),
         ),
     ];
     let scene: Scene = vec;
 
-    let start = Instant::now();
     renderer.render(&scene);
     match renderer.framebuffer().save("new_image.png") {
         Ok(_) => tracing::info!("Saved file"),
