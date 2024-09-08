@@ -93,8 +93,6 @@ fn main() {
     window.set_target_fps(60);
     renderer.render(&scene);
 
-    let mut fb = Framebuffer::new(width as usize, height as usize);
-    fb.from_fn(|_, _| Color::with_alpha(vec3(0.0, 0.0, 0.0), 0.0));
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // We unwrap here as we want this code to exit if it fails.
         window
