@@ -54,7 +54,9 @@ impl MultiThreadedRenderer {
         (start_y..start_y + tile_size).for_each(|y| {
             (start_x..start_x + tile_size).for_each(|x| {
                 let color: Vec3 = (0..number_of_samples)
-                    .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, 0))
+                    .map(|_| {
+                        hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, camera.bounce_depth)
+                    })
                     .sum();
                 framebuffer.put_pixel(
                     (x - start_x) as usize,

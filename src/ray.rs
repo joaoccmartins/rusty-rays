@@ -10,5 +10,6 @@ pub struct HitResult {
     pub normal: Vec3,
     pub pos: Vec3,
     pub t: f32,
-    pub bounce: usize,
+    pub bounce: u32,
+    pub original_ray: Ray,
 }

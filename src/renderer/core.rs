@@ -1,5 +1,4 @@
 use glam::{vec3, Vec3};
-use rand::Rng;
 
 use crate::{
     color::Framebuffer,
@@ -13,39 +12,17 @@ pub trait Renderer {
     fn framebuffer(&self) -> Framebuffer;
 }
 
-// Generates a random ray in the hemisphere coplanar with the normal
-pub(super) fn get_lambertian_ray(normal: Vec3, pos: Vec3) -> Ray {
-    Ray {
-        pos,
-        dir: pos + normal + random_unit_vector(),
-    }
-}
-
-pub(super) fn random_unit_vector() -> Vec3 {
-    let mut rng = rand::thread_rng();
-    vec3(
-        rng.gen_range(-1.0..=1.0),
-        rng.gen_range(-1.0..=1.0),
-        rng.gen_range(-1.0..=1.0),
-    )
-    .normalize()
-}
-
 // Returns the pixel color from material based on the hit
 // Might generate more ray hits
 pub(super) fn get_ray_color(mat: Material, hit: HitResult, scene: &Scene) -> Vec3 {
-    match mat {
-        Material::Diffuse(diffuse_att) => {
-            if hit.bounce >= diffuse_att.max_bounce {
-                return vec3(0.0, 0.0, 0.0);
-            };
-            // Generate a random ray on the normal's hemisphere
-            0.5 * hit_scene_with_ray(
-                get_lambertian_ray(hit.normal, hit.pos),
-                scene,
-                hit.bounce + 1,
-            )
-        }
+    if hit.bounce == 0 {
+        return vec3(0.0, 0.0, 0.0);
+    };
+    // Continue scattering the ray depending on material
+    if let Some((ray, albedo)) = mat.scatter(&hit) {
+        albedo * hit_scene_with_ray(ray, scene, hit.bounce - 1)
+    } else {
+        vec3(0.0, 0.0, 0.0)
     }
 }
 
@@ -53,7 +30,7 @@ pub(super) fn hit_object_with_ray(
     ray: Ray,
     prim: &Prim,
     interval: Interval,
-    bounce_count: usize,
+    bounce_depth: u32,
 ) -> Option<HitResult> {
     match prim {
         Prim::Sphere { pos, radius } => {
@@ -84,7 +61,8 @@ pub(super) fn hit_object_with_ray(
                         normal,
                         pos: hit_pos,
                         t,
-                        bounce: bounce_count,
+                        bounce: bounce_depth,
+                        original_ray: ray,
                     }
                 })
             }
@@ -92,17 +70,12 @@ pub(super) fn hit_object_with_ray(
     }
 }
 
-pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_count: usize) -> Vec3 {
+pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bound_depth: u32) -> Vec3 {
     if let Some((hit, mat, _prim)) = scene
         .iter()
         .filter_map(|(prim, mat)| {
-            hit_object_with_ray(
-                ray,
-                prim,
-                Interval::new(0.0001, f32::INFINITY),
-                bounce_count,
-            )
-            .and_then(|hit| Some((hit, mat, prim)))
+            hit_object_with_ray(ray, prim, Interval::new(0.0001, f32::INFINITY), bound_depth)
+                .and_then(|hit| Some((hit, mat, prim)))
         })
         .min_by(|left, right| left.0.t.total_cmp(&right.0.t))
     {

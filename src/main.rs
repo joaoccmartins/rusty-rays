@@ -1,9 +1,8 @@
 pub(crate) use camera::Camera;
-use color::{Color, Framebuffer};
 use glam::vec3;
 use minifb::{Key, Window, WindowOptions};
 use ray::Ray;
-use scene_graph::Prim;
+use scene_graph::{MetalAttributes, Prim};
 
 use renderer::{core::Renderer, multi_threaded::MultiThreadedRenderer};
 
@@ -41,12 +40,13 @@ pub fn init_tracing() {
 
 fn main() {
     init_tracing();
-    let width = 512;
-    let height = 512;
+    let width = 1024;
+    let height = 1024;
     let camera = Camera::new(
         width,
         height,
-        vec3(0.0, 0.0, -10.0),
+        10,
+        vec3(0.0, 0.0, 0.0),
         vec3(0.0, -0.05, 0.5).normalize(),
         1.0,
     );
@@ -59,22 +59,38 @@ fn main() {
     let vec = vec![
         (
             Prim::Sphere {
-                pos: vec3(0.0, 0.1, -10.0),
+                pos: vec3(0.0, 0.1, -0.02),
                 radius: 0.1,
             },
             Material::Diffuse(DiffuseAttributes {
-                color: vec3(0.5, 0.3, 0.0),
-                ..Default::default()
+                albedo: vec3(0.1, 0.2, 0.5),
             }),
         ),
         (
             Prim::Sphere {
-                pos: vec3(0.0, -10.0, -10.0),
+                pos: vec3(-0.2, 0.1, 0.0),
+                radius: 0.1,
+            },
+            Material::Metal(MetalAttributes {
+                albedo: vec3(0.8, 0.8, 0.8),
+            }),
+        ),
+        (
+            Prim::Sphere {
+                pos: vec3(0.2, 0.1, 0.0),
+                radius: 0.1,
+            },
+            Material::Metal(MetalAttributes {
+                albedo: vec3(0.8, 0.6, 0.2),
+            }),
+        ),
+        (
+            Prim::Sphere {
+                pos: vec3(0.0, -10.0, 0.0),
                 radius: 10.0,
             },
             Material::Diffuse(DiffuseAttributes {
-                color: vec3(0.5, 0.0, 1.8),
-                ..Default::default()
+                albedo: vec3(0.8, 0.8, 0.0),
             }),
         ),
     ];

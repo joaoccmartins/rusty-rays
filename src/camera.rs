@@ -9,16 +9,25 @@ pub struct Camera {
     pub pos: Vec3,
     pub view: Vec3,
     pub sensor_size: f32,
+    pub bounce_depth: u32,
 }
 
 impl Camera {
-    pub fn new(width: u32, height: u32, pos: Vec3, view: Vec3, sensor_size: f32) -> Self {
+    pub fn new(
+        width: u32,
+        height: u32,
+        bounce_depth: u32,
+        pos: Vec3,
+        view: Vec3,
+        sensor_size: f32,
+    ) -> Self {
         Self {
             width,
             height,
             pos,
             view,
             sensor_size,
+            bounce_depth,
         }
     }
 

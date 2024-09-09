@@ -1,4 +1,4 @@
-use glam::{vec4, Vec3};
+use glam::Vec3;
 use std::ops::Div;
 
 use crate::{
@@ -34,7 +34,9 @@ impl Renderer for SingleThreadedRenderer {
         (0..height).for_each(|y| {
             (0..width).for_each(|x| {
                 let color: Vec3 = (0..number_of_samples)
-                    .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), scene, 0))
+                    .map(|_| {
+                        hit_scene_with_ray(camera.get_ray(x, y, 1.0), scene, camera.bounce_depth)
+                    })
                     .sum();
                 self.framebuffer.put_pixel(
                     x as usize,
