@@ -9,6 +9,7 @@ use crate::{
 
 use super::core::{hit_scene_with_ray, Renderer};
 
+/// A simple implementation of a Renderer using the core functions
 pub struct SingleThreadedRenderer {
     camera: Camera,
     framebuffer: Framebuffer,
@@ -26,6 +27,7 @@ impl SingleThreadedRenderer {
 }
 
 impl Renderer for SingleThreadedRenderer {
+    /// Renders scene using a single thread.
     fn render(&mut self, scene: &Scene) {
         let number_of_samples = self.number_of_samples;
         let width = self.camera.width;
@@ -47,6 +49,7 @@ impl Renderer for SingleThreadedRenderer {
         });
     }
 
+    /// Returns the result framebuffer
     fn framebuffer(&self) -> Framebuffer {
         self.framebuffer.clone()
     }

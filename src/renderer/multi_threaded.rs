@@ -15,8 +15,8 @@ use crate::{
 
 use super::core::Renderer;
 
-// A hyper simple multi threaded version of the renderer, just for expedience sake
-// not exactly lightspeed or production quality
+/// A simple multi threaded version of the renderer using the core functions, just for expedience sake
+/// not exactly lightspeed or production quality
 pub struct MultiThreadedRenderer {
     pub camera: Camera,
     tiles: Vec<Option<Framebuffer>>,
@@ -26,6 +26,8 @@ pub struct MultiThreadedRenderer {
 
 impl MultiThreadedRenderer {
     pub fn new(camera: Camera, number_of_samples: u32, tile_size: u32) -> Self {
+        // NOTE: currently we don't want to work out the padding requirements for the
+        // tiles that
         if camera.width % tile_size != 0 || camera.height % tile_size != 0 {
             todo!("Size needs to be divisible by tile size for now.")
         };
@@ -38,39 +40,42 @@ impl MultiThreadedRenderer {
             tile_size,
         }
     }
+}
 
-    fn render_tile(
-        column: u32,
-        row: u32,
-        scene: Scene,
-        camera: &Camera,
-        tile_size: u32,
-        number_of_samples: u32,
-        channel: SyncSender<(u32, u32, Framebuffer)>,
-    ) {
-        let start_x = column * tile_size;
-        let start_y = row * tile_size;
-        let mut framebuffer = Framebuffer::new(tile_size as usize, tile_size as usize);
-        (start_y..start_y + tile_size).for_each(|y| {
-            (start_x..start_x + tile_size).for_each(|x| {
-                let color: Vec3 = (0..number_of_samples)
-                    .map(|_| {
-                        hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, camera.bounce_depth)
-                    })
-                    .sum();
-                framebuffer.put_pixel(
-                    (x - start_x) as usize,
-                    (y - start_y) as usize,
-                    Color::with_alpha(linear_to_gamma(color.div(number_of_samples as f32)), 1.0),
-                );
-            })
-        });
-        tracing::trace!("Finished Tile ({column}, {row})");
-        channel.send((column, row, framebuffer)).unwrap();
-    }
+/// Renders a single tile and sends the result to another thread via channel
+/// NOTE: this was originally part of MultiThreaded implementation, but it doesn't
+/// make sense unless it uses self, but we can't move the struct, as we're using it in an outside thread
+/// TODO: rework the MuliThreadedRenderer to contain multiple TileRenderers
+fn render_tile(
+    column: u32,
+    row: u32,
+    scene: Scene,
+    camera: &Camera,
+    tile_size: u32,
+    number_of_samples: u32,
+    channel: SyncSender<(u32, u32, Framebuffer)>,
+) {
+    let start_x = column * tile_size;
+    let start_y = row * tile_size;
+    let mut framebuffer = Framebuffer::new(tile_size as usize, tile_size as usize);
+    (start_y..start_y + tile_size).for_each(|y| {
+        (start_x..start_x + tile_size).for_each(|x| {
+            let color: Vec3 = (0..number_of_samples)
+                .map(|_| hit_scene_with_ray(camera.get_ray(x, y, 1.0), &scene, camera.bounce_depth))
+                .sum();
+            framebuffer.put_pixel(
+                (x - start_x) as usize,
+                (y - start_y) as usize,
+                Color::with_alpha(linear_to_gamma(color.div(number_of_samples as f32)), 1.0),
+            );
+        })
+    });
+    tracing::trace!("Finished Tile ({column}, {row})");
+    channel.send((column, row, framebuffer)).unwrap();
 }
 
 impl Renderer for MultiThreadedRenderer {
+    /// Renders scene into the MultiThreadedRenderer tiles framebuffers to then be used
     fn render(&mut self, scene: &Scene) {
         let number_of_samples = self.number_of_samples;
         let camera = self.camera;
@@ -88,7 +93,7 @@ impl Renderer for MultiThreadedRenderer {
                 let tx_clone = tx.clone();
                 let scene_clone = scene.clone();
                 thread::spawn(move || {
-                    MultiThreadedRenderer::render_tile(
+                    render_tile(
                         column,
                         row,
                         scene_clone,
@@ -109,6 +114,7 @@ impl Renderer for MultiThreadedRenderer {
         tracing::trace!("Finished Rendering");
     }
 
+    /// Stitches all tiles into a single framebuffer and returns it
     fn framebuffer(&self) -> Framebuffer {
         let mut framebuffer =
             Framebuffer::new(self.camera.width as usize, self.camera.height as usize);
