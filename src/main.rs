@@ -40,6 +40,7 @@ pub fn init_tracing() {
 
 fn main() {
     init_tracing();
+    // Camera definitions
     let width = 1024;
     let height = 1024;
     let camera = Camera::new(
@@ -53,9 +54,9 @@ fn main() {
     let number_of_samples = 20;
 
     //let mut renderer = SingleThreadedRenderer::new(camera, number_of_samples);
-
     let mut renderer = MultiThreadedRenderer::new(camera, number_of_samples, 64);
 
+    // Scene definitions
     let vec = vec![
         (
             Prim::Sphere {
@@ -94,8 +95,9 @@ fn main() {
             }),
         ),
     ];
-    let scene: Scene = vec;
 
+    let scene: Scene = vec;
+    // Minifb Window generation
     let mut window = Window::new(
         "Rusty Rays Prototype - ESC to exit",
         width as usize,
@@ -105,12 +107,13 @@ fn main() {
     .unwrap_or_else(|e| {
         panic!("{}", e);
     });
-
     window.set_target_fps(60);
+
+    // The actual render
     renderer.render(&scene);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        // We unwrap here as we want this code to exit if it fails.
+        // Push the rendered framebuffer into the window
         window
             .update_with_buffer(
                 renderer.framebuffer().data(),

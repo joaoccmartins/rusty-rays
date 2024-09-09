@@ -12,8 +12,8 @@ pub trait Renderer {
     fn framebuffer(&self) -> Framebuffer;
 }
 
-// Returns the pixel color from material based on the hit
-// Might generate more ray hits
+/// Returns the pixel color from material based on the hit.
+/// Might generate more ray hits
 pub(super) fn get_ray_color(mat: Material, hit: HitResult, scene: &Scene) -> Vec3 {
     if hit.bounce == 0 {
         return vec3(0.0, 0.0, 0.0);
@@ -26,6 +26,7 @@ pub(super) fn get_ray_color(mat: Material, hit: HitResult, scene: &Scene) -> Vec
     }
 }
 
+/// Checks the the ray to object intersection
 pub(super) fn hit_object_with_ray(
     ray: Ray,
     prim: &Prim,
@@ -70,12 +71,20 @@ pub(super) fn hit_object_with_ray(
     }
 }
 
-pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bound_depth: u32) -> Vec3 {
+/// Naively tries to hit every object in the scene to return a color or the background
+/// with bounce_depth being the current number of bounces left until we no longer scatter rays
+/// TODO: Add background to scene.
+pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_depth: u32) -> Vec3 {
     if let Some((hit, mat, _prim)) = scene
         .iter()
         .filter_map(|(prim, mat)| {
-            hit_object_with_ray(ray, prim, Interval::new(0.0001, f32::INFINITY), bound_depth)
-                .and_then(|hit| Some((hit, mat, prim)))
+            hit_object_with_ray(
+                ray,
+                prim,
+                Interval::new(0.0001, f32::INFINITY),
+                bounce_depth,
+            )
+            .and_then(|hit| Some((hit, mat, prim)))
         })
         .min_by(|left, right| left.0.t.total_cmp(&right.0.t))
     {

@@ -1,8 +1,8 @@
 use glam::{vec3, Vec3};
 use image::{ImageError, Rgba, RgbaImage};
 
-// A very simple framebuffer to be used in conjunction with minifb
-// stores data in ARGB format, big endian
+/// A very simple framebuffer to be used in conjunction with minifb
+/// stores data in ARGB format, big endian
 #[derive(Clone)]
 pub struct Framebuffer {
     data: Vec<u32>,
@@ -19,15 +19,19 @@ impl Framebuffer {
         }
     }
 
+    /// Returns the data as a slice of u32, each representing a pixel
     pub fn data(&self) -> &[u32] {
         &self.data
     }
 
+    /// Puth pixel in (x, y) position in the framebuffer
     pub fn put_pixel(&mut self, x: usize, y: usize, pixel: u32) {
         debug_assert!(x < self.width && y < self.height);
         self.data[y * self.height + x] = pixel;
     }
 
+    /// Saves the image by blitting it into a RgbaImage from image crate
+    /// and using its IO
     pub fn save(&self, file_name: &str) -> Result<(), ImageError> {
         RgbaImage::from_fn(self.width as u32, self.height as u32, |x, y| {
             let pixel_data = self.data[(y * self.height as u32 + x) as usize].to_be_bytes();
@@ -36,6 +40,7 @@ impl Framebuffer {
         .save(file_name)
     }
 
+    /// Runs a shader function in the framebuffer
     pub fn from_fn<F>(&mut self, mut shader: F)
     where
         F: FnMut(usize, usize) -> u32,
@@ -61,6 +66,7 @@ impl Color for Vec3 {
     }
 }
 
+/// Converts from linear space to gamma corrected space
 pub fn linear_to_gamma(color: Vec3) -> Vec3 {
     vec3(color.x.sqrt(), color.y.sqrt(), color.z.sqrt())
 }
