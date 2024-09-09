@@ -24,7 +24,8 @@ impl Framebuffer {
         &self.data
     }
 
-    /// Puth pixel in (x, y) position in the framebuffer
+    /// Puth pixel in (x, y) position in the framebuffer. (x, y) should not
+    /// exceed (width - 1, height -1)
     pub fn put_pixel(&mut self, x: usize, y: usize, pixel: u32) {
         debug_assert!(x < self.width && y < self.height);
         self.data[y * self.height + x] = pixel;

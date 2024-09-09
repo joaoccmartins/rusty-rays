@@ -3,7 +3,7 @@ use std::{
     thread,
 };
 
-use glam::{vec4, Vec3};
+use glam::Vec3;
 use std::ops::Div;
 
 use crate::{

@@ -47,11 +47,11 @@ fn main() {
         width,
         height,
         10,
-        vec3(0.0, 0.0, 0.0),
-        vec3(0.0, -0.05, 0.5).normalize(),
-        1.0,
+        20.0,
+        vec3(0.0, 0.0, 2.0),
+        vec3(0.0, 0.0, 1.0),
     );
-    let number_of_samples = 20;
+    let number_of_samples = 10;
 
     //let mut renderer = SingleThreadedRenderer::new(camera, number_of_samples);
     let mut renderer = MultiThreadedRenderer::new(camera, number_of_samples, 64);
@@ -60,38 +60,20 @@ fn main() {
     let vec = vec![
         (
             Prim::Sphere {
-                pos: vec3(0.0, 0.1, -0.02),
-                radius: 0.1,
+                pos: vec3(-1.0, 0.0, -1.2),
+                radius: 1.0,
             },
             Material::Diffuse(DiffuseAttributes {
-                albedo: vec3(0.1, 0.2, 0.5),
+                albedo: vec3(1.0, 0.0, 0.0),
             }),
         ),
         (
             Prim::Sphere {
-                pos: vec3(-0.2, 0.1, 0.0),
-                radius: 0.1,
-            },
-            Material::Metal(MetalAttributes {
-                albedo: vec3(0.8, 0.8, 0.8),
-            }),
-        ),
-        (
-            Prim::Sphere {
-                pos: vec3(0.2, 0.1, 0.0),
-                radius: 0.1,
-            },
-            Material::Metal(MetalAttributes {
-                albedo: vec3(0.8, 0.6, 0.2),
-            }),
-        ),
-        (
-            Prim::Sphere {
-                pos: vec3(0.0, -10.0, 0.0),
-                radius: 10.0,
+                pos: vec3(1.0, 0.0, -1.2),
+                radius: 1.0,
             },
             Material::Diffuse(DiffuseAttributes {
-                albedo: vec3(0.8, 0.8, 0.0),
+                albedo: vec3(0.0, 0.0, 1.0),
             }),
         ),
     ];
