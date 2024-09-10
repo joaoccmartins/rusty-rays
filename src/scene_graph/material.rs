@@ -14,6 +14,9 @@ pub struct MetalAttributes {
     pub albedo: Vec3,
 }
 
+/// An enum to dispatch multiple different materials
+/// doesn't enable user defined materials for now.
+/// TODO: Make this a Trait
 #[derive(Copy, Clone, Debug)]
 pub enum Material {
     Diffuse(DiffuseAttributes),

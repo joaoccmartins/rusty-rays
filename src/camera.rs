@@ -4,6 +4,7 @@ use super::Ray;
 use glam::{vec3, Vec3};
 use rand::Rng;
 
+/// A classic pinhole camera
 #[derive(Copy, Clone, Debug)]
 pub struct Camera {
     pub width: u32,
@@ -19,6 +20,8 @@ pub struct Camera {
 }
 
 impl Camera {
+    /// Creates a camera that is centered at look_from, looking at look_at.
+    /// bounce_depth marks the amount of times a ray can bounce
     pub fn new(
         width: u32,
         height: u32,
