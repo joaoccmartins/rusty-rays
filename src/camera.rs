@@ -26,11 +26,8 @@ impl Camera {
         fov: f32,
         look_from: Vec3,
         look_at: Vec3,
+        up: Vec3,
     ) -> Self {
-        // For now we'll always consider camera up to be world up
-        // so no barrel rolls.
-        let up = vec3(0.0, 1.0, 0.0);
-
         let focal_length = (look_at - look_from).length();
         let w = (look_at - look_from) / focal_length;
         let u = up.cross(w).normalize();
@@ -38,11 +35,6 @@ impl Camera {
 
         let viewport_height = 2.0 * fov.div(2.0).to_radians().tanh() + focal_length;
         let viewport_width = viewport_height * width as f32 / height as f32;
-        println!(
-            "({}, {})",
-            u * viewport_width / width as f32,
-            v * viewport_height / height as f32
-        );
         Self {
             width,
             height,

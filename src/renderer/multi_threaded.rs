@@ -19,8 +19,8 @@ use super::core::Renderer;
 /// not exactly lightspeed or production quality
 pub struct MultiThreadedRenderer {
     pub camera: Camera,
+    pub number_of_samples: u32,
     tiles: Vec<Option<Framebuffer>>,
-    number_of_samples: u32,
     tile_size: u32,
 }
 
@@ -108,7 +108,6 @@ impl Renderer for MultiThreadedRenderer {
         drop(tx);
         // Collect every tile
         for (column, row, tile) in rx {
-            debug_assert!(self.tiles[(column + columns * row) as usize].is_none());
             self.tiles[(column + columns * row) as usize] = Some(tile);
         }
         tracing::trace!("Finished Rendering");
