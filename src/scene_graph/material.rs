@@ -36,7 +36,6 @@ impl Material {
                     .reflect_ray(hit_result.normal, hit_result.pos),
                 att.albedo,
             )),
-            _ => None,
         }
     }
 }

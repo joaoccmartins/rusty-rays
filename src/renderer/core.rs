@@ -75,7 +75,17 @@ pub(super) fn hit_object_with_ray(
 /// with bounce_depth being the current number of bounces left until we no longer scatter rays
 /// TODO: Add background to scene.
 pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_depth: u32) -> Vec3 {
-    if let Some((hit, mat, _prim)) = scene
+    if let Some((hit, mat)) = find_closest_hit(ray, scene, bounce_depth) {
+        get_ray_color(*mat, hit, scene)
+    } else {
+        // Background
+        vec3(0.4, 0.6, 0.85)
+    }
+}
+
+// Find the closest object hit by the ray
+fn find_closest_hit(ray: Ray, scene: &Scene, bounce_depth: u32) -> Option<(HitResult, &Material)> {
+    scene
         .iter()
         .filter_map(|(prim, mat)| {
             hit_object_with_ray(
@@ -84,13 +94,7 @@ pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_depth: u32) -> 
                 Interval::new(0.0001, f32::INFINITY),
                 bounce_depth,
             )
-            .and_then(|hit| Some((hit, mat, prim)))
+            .map(|hit| (hit, mat))
         })
-        .min_by(|left, right| left.0.t.total_cmp(&right.0.t))
-    {
-        get_ray_color(*mat, hit, scene)
-    } else {
-        // Background
-        vec3(0.4, 0.6, 0.85)
-    }
+        .min_by(|(hit1, _), (hit2, _)| hit1.t.total_cmp(&hit2.t))
 }

@@ -1,7 +1,7 @@
 use std::ops::Div;
 
 use super::Ray;
-use glam::{vec3, Vec3};
+use glam::Vec3;
 use rand::Rng;
 
 /// A classic pinhole camera
@@ -55,8 +55,8 @@ impl Camera {
         let mut rng = rand::thread_rng();
         let x = -(self.width as f32 / 2.0) + x as f32;
         let y = -(self.height as f32 / 2.0) + y as f32;
-        let x = x as f32 + rng.gen_range(-half_range..=half_range);
-        let y = y as f32 + rng.gen_range(-half_range..=half_range);
+        let x = x + rng.gen_range(-half_range..=half_range);
+        let y = y + rng.gen_range(-half_range..=half_range);
         let pixel_position = self.pixel_center + x * self.pixel_delta_u + y * self.pixel_delta_v;
         Ray {
             pos: self.pos,

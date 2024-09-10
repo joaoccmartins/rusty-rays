@@ -42,7 +42,7 @@ impl Framebuffer {
     }
 
     /// Runs a shader function in the framebuffer
-    pub fn from_fn<F>(&mut self, mut shader: F)
+    pub fn for_each<F>(&mut self, mut shader: F)
     where
         F: FnMut(usize, usize) -> u32,
     {

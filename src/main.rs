@@ -70,7 +70,7 @@ fn main() {
                 pos: vec3(1.0, 0.0, -1.2),
                 radius: 1.0,
             },
-            Material::Diffuse(DiffuseAttributes {
+            Material::Metal(MetalAttributes {
                 albedo: vec3(0.0, 0.0, 1.0),
             }),
         ),
