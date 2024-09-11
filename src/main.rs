@@ -2,11 +2,11 @@ pub(crate) use camera::Camera;
 use glam::vec3;
 use minifb::{Key, KeyRepeat, Window, WindowOptions};
 use ray::Ray;
-use scene_graph::{MetalAttributes, Prim};
 
 use renderer::{core::Renderer, multi_threaded::MultiThreadedRenderer};
+use scene_graph::{Diffuse, Metal};
 
-use crate::scene_graph::{DiffuseAttributes, Material, Scene};
+use crate::scene_graph::{Prim, Scene};
 
 mod camera;
 mod color;
@@ -46,37 +46,35 @@ fn main() {
     let mut look_from = vec3(0.0, 0.0, 2.0);
     let mut look_at = vec3(0.0, 0.0, 1.0);
     let up = vec3(0.0, 1.0, 0.0);
-    let bounce_depth = 1;
+    let bounce_depth = 50;
     let fov = 20.0;
     let camera = Camera::new(width, height, bounce_depth, fov, look_from, look_at, up);
-    let number_of_samples = 10;
+    let number_of_samples = 100;
 
     //let mut renderer = SingleThreadedRenderer::new(camera, number_of_samples);
     let mut renderer = MultiThreadedRenderer::new(camera, number_of_samples, 64);
 
     // Scene definitions
-    let vec = vec![
-        (
-            Prim::Sphere {
-                pos: vec3(-1.0, 0.0, -1.2),
-                radius: 1.0,
-            },
-            Material::Diffuse(DiffuseAttributes {
-                albedo: vec3(1.0, 0.0, 0.0),
-            }),
-        ),
-        (
-            Prim::Sphere {
-                pos: vec3(1.0, 0.0, -1.2),
-                radius: 1.0,
-            },
-            Material::Metal(MetalAttributes {
-                albedo: vec3(0.0, 0.0, 1.0),
-            }),
-        ),
-    ];
+    let mut scene = Scene::new();
+    scene.add(
+        Prim::Sphere {
+            pos: vec3(-1.0, 0.0, -1.2),
+            radius: 1.0,
+        },
+        Diffuse {
+            albedo: vec3(1.0, 0.0, 0.0),
+        },
+    );
+    scene.add(
+        Prim::Sphere {
+            pos: vec3(1.0, 0.0, -1.2),
+            radius: 1.0,
+        },
+        Metal {
+            albedo: vec3(0.0, 0.0, 1.0),
+        },
+    );
 
-    let scene: Scene = vec;
     // Minifb Window generation
     let mut window = Window::new(
         "Rusty Rays Prototype - ESC to exit",
