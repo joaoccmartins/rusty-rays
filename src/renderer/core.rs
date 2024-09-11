@@ -14,7 +14,7 @@ pub trait Renderer {
 
 /// Returns the pixel color from material based on the hit.
 /// Might generate more ray hits
-pub(super) fn get_ray_color(mat: Material, hit: HitResult, scene: &Scene) -> Vec3 {
+pub(super) fn get_ray_color(mat: &Box<dyn Material>, hit: HitResult, scene: &Scene) -> Vec3 {
     if hit.bounce == 0 {
         return vec3(0.0, 0.0, 0.0);
     };
@@ -76,7 +76,7 @@ pub(super) fn hit_object_with_ray(
 /// TODO: Add background to scene.
 pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_depth: u32) -> Vec3 {
     if let Some((hit, mat)) = find_closest_hit(ray, scene, bounce_depth) {
-        get_ray_color(*mat, hit, scene)
+        get_ray_color(mat, hit, scene)
     } else {
         // Background
         vec3(0.4, 0.6, 0.85)
@@ -84,7 +84,11 @@ pub(super) fn hit_scene_with_ray(ray: Ray, scene: &Scene, bounce_depth: u32) -> 
 }
 
 // Find the closest object hit by the ray
-fn find_closest_hit(ray: Ray, scene: &Scene, bounce_depth: u32) -> Option<(HitResult, &Material)> {
+fn find_closest_hit(
+    ray: Ray,
+    scene: &Scene,
+    bounce_depth: u32,
+) -> Option<(HitResult, &Box<dyn Material>)> {
     scene
         .iter()
         .filter_map(|(prim, mat)| {
