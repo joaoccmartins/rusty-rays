@@ -1,5 +1,6 @@
 use glam::{vec3, Vec3};
 use image::{ImageError, Rgba, RgbaImage};
+use rayon::slice::{ParallelSlice, ParallelSliceMut};
 
 /// A very simple framebuffer to be used in conjunction with minifb
 /// stores data in ARGB format, big endian
@@ -24,13 +25,6 @@ impl Framebuffer {
         &self.data
     }
 
-    /// Puth pixel in (x, y) position in the framebuffer. (x, y) should not
-    /// exceed (width - 1, height -1)
-    pub fn put_pixel(&mut self, x: usize, y: usize, pixel: u32) {
-        debug_assert!(x < self.width && y < self.height);
-        self.data[y * self.height + x] = pixel;
-    }
-
     /// Saves the image by blitting it into a RgbaImage from image crate
     /// and using its IO
     pub fn save(&self, file_name: &str) -> Result<(), ImageError> {
@@ -50,6 +44,18 @@ impl Framebuffer {
             .iter_mut()
             .enumerate()
             .for_each(|(i, p)| *p = shader(i % self.width, i / self.height));
+    }
+}
+
+impl ParallelSlice<u32> for Framebuffer {
+    fn as_parallel_slice(&self) -> &[u32] {
+        self.data.as_parallel_slice()
+    }
+}
+
+impl ParallelSliceMut<u32> for Framebuffer {
+    fn as_parallel_slice_mut(&mut self) -> &mut [u32] {
+        self.data.as_parallel_slice_mut()
     }
 }
 

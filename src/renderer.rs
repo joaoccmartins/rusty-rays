@@ -1,3 +1,2 @@
 pub mod core;
-pub mod multi_threaded;
-pub mod single_threaded;
+pub mod simple_renderer;

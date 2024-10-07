@@ -7,7 +7,7 @@ use crate::ray::{HitResult, Ray};
 /// as a material in the SceneGraph
 /// NOTE: Send is required here due to multi threading
 /// TODO: remove Send as a requirement
-pub trait Material: DynClone + Send {
+pub trait Material: DynClone + Send + Sync {
     /// How the ray is scattered when a primitive with this material is hit
     fn scatter(&self, hit_result: &HitResult) -> Option<(Ray, Vec3)>;
 }
