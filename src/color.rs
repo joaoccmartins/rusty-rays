@@ -1,6 +1,6 @@
 use glam::{vec3, Vec3};
 use image::{ImageError, Rgba, RgbaImage};
-use rayon::slice::{ParallelSlice, ParallelSliceMut};
+use rayon::prelude::*;
 
 /// A very simple framebuffer to be used in conjunction with minifb
 /// stores data in ARGB format, big endian
@@ -36,26 +36,14 @@ impl Framebuffer {
     }
 
     /// Runs a shader function in the framebuffer
-    pub fn for_each<F>(&mut self, mut shader: F)
+    pub fn for_each<F>(&mut self, shader: F)
     where
-        F: FnMut(usize, usize) -> u32,
+        F: Fn(usize, usize) -> u32 + std::marker::Sync + std::marker::Send,
     {
         self.data
-            .iter_mut()
+            .par_iter_mut()
             .enumerate()
             .for_each(|(i, p)| *p = shader(i % self.width, i / self.height));
-    }
-}
-
-impl ParallelSlice<u32> for Framebuffer {
-    fn as_parallel_slice(&self) -> &[u32] {
-        self.data.as_parallel_slice()
-    }
-}
-
-impl ParallelSliceMut<u32> for Framebuffer {
-    fn as_parallel_slice_mut(&mut self) -> &mut [u32] {
-        self.data.as_parallel_slice_mut()
     }
 }
 

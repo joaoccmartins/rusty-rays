@@ -52,7 +52,6 @@ fn main() {
     let number_of_samples = 100;
 
     let mut renderer = SimpleRenderer::new(camera, number_of_samples);
-    //let mut renderer = MultiThreadedRenderer::new(camera, number_of_samples, 64);
 
     // Scene definitions
     let mut scene = Scene::new();
@@ -88,10 +87,7 @@ fn main() {
     window.set_target_fps(60);
 
     // The actual render
-    let now = std::time::Instant::now();
-    println!("Starting Render");
     renderer.render(&scene);
-    println!("Rendered frame in: {}", now.elapsed().as_secs_f32());
 
     // The window loop
     while window.is_open() && !window.is_key_down(Key::Escape) {
